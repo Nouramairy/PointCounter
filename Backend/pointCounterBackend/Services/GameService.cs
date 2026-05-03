@@ -6,7 +6,7 @@ using pointCounterBackend.Services.Interfaces;
 
 namespace pointCounterBackend.Services;
 
-public class GameService : IGameService
+public class GameService : IGameService // why  implementing this?
 {
     private readonly AppDbContext _context;
 

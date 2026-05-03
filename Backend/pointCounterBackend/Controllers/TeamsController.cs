@@ -54,7 +54,7 @@ public class TeamsController : ControllerBase
         var result = await _teamService.UpdateAsync(id, dto);
 
         if (!result)
-            return NotFound();
+            return BadRequest("Team saving has been failed");
 
         return NoContent();
     }

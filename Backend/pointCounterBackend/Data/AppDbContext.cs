@@ -27,7 +27,7 @@ namespace pointCounterBackend.Data
             ConfigureGameTeam(modelBuilder);
         }
 
-
+        // serperation of concern.
         private static void ConfigurePlayer(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Player>(entity =>
@@ -42,6 +42,8 @@ namespace pointCounterBackend.Data
                 entity.Property(p => p.CreatedAt).IsRequired();
                 entity.Property(p => p.UpdatedAt).IsRequired();
 
+                // 1. what heppens if one of the field lets say , address is missing?
+                // 2. why name field's max length is 50
             });
         }
 
@@ -88,11 +90,16 @@ namespace pointCounterBackend.Data
                         .WithMany(g => g.Scoreboards)
                         .HasForeignKey(s => s.GameId)
                         .OnDelete(DeleteBehavior.Cascade);
+                    // what the behavior cascade means?
 
                     entity.HasOne(s => s.Team)
                         .WithMany()
                         .HasForeignKey(s => s.TeamId)
                         .OnDelete(DeleteBehavior.Restrict);
+                    // what the behavior Restrict means?
+                    // team -> scores , here team can exist without scores
+                    // but score cant exist without team
+                    // if we delete the game/team, the score will be deleted
 
                     entity.HasIndex(s => new { s.GameId, s.TeamId })
                         .IsUnique();
