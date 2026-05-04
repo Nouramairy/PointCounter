@@ -91,7 +91,11 @@ public class TeamService : ITeamService
 
     public async Task<bool> UpdateAsync(int id, UpdateTeamDto dto)
     {
-        var team = await _context.Teams.FindAsync(id);
+      //  var team = await _context.Teams.FindAsync(id);
+
+        var team = await _context.Teams
+        .Include(t => t.TeamPlayers)
+        .FirstOrDefaultAsync(t => t.Id == id);
 
         if (team == null)
             return false;
@@ -107,7 +111,7 @@ public class TeamService : ITeamService
             TeamId = id,
             PlayerId = playerId
         }).ToList();
-        if(updatedTeam.MaximumPlayersAllowed>= teamplayers.Count)
+        if(updatedTeam.MaximumPlayersAllowed >= teamplayers.Count)
         {
             team.TeamPlayers = teamplayers;
             team.UpdatedAt = DateTime.UtcNow;
