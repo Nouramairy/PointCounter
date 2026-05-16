@@ -1,0 +1,32 @@
+<h1>Poängställning</h1>
+  <p class="muted">
+    Välj vilken match du vill följa eller uppdatera poäng för. Använd +1 och −1 för att justera lokalt, och klicka sedan på
+    <strong>Spara ändringar</strong> för att skicka ändringarna till servern.
+  </p>
+
+<div class="picker" *ngIf="!gamesLoadError">
+  <label for="match-select">Match</label>
+  <select
+    id="match-select"
+    name="match"
+    [(ngModel)]="selectedGameId"
+    (ngModelChange)="onMatchChange($event)"
+  >
+    <option [ngValue]="null">Välj match …</option>
+    <option *ngFor="let g of games" [ngValue]="g.id">
+      {{ g.name }} — {{ g.duration }} min
+    </option>
+  </select>
+</div>
+
+<p *ngIf="gamesLoadError" class="error">{{ gamesLoadError }}</p>
+
+<p class="hint">
+  <a routerLink="/games">Hantera matcher och lag</a>
+</p>
+
+<app-scoreboard-view
+  *ngIf="selectedGameId != null"
+  [gameId]="selectedGameId!"
+  [embedded]="true"
+/>

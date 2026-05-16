@@ -91,40 +91,39 @@ public class TeamService : ITeamService
 
     public async Task<bool> UpdateAsync(int id, UpdateTeamDto dto)
     {
-      //  var team = await _context.Teams.FindAsync(id);
-
         var team = await _context.Teams
-        .Include(t => t.TeamPlayers)
-        .FirstOrDefaultAsync(t => t.Id == id);
+            .Include(t => t.TeamPlayers)
+            .FirstOrDefaultAsync(t => t.Id == id);
 
         if (team == null)
             return false;
 
+        if (dto.PlayerIds.Count > dto.MaximumPlayersAllowed)
+            return false;
+
+        var playerIds = dto.PlayerIds.Distinct().ToList();
+        if (playerIds.Count > dto.MaximumPlayersAllowed)
+            return false;
+
+        var existingPlayerCount = await _context.Players
+            .CountAsync(p => playerIds.Contains(p.Id));
+
+        if (existingPlayerCount != playerIds.Count)
+            return false;
+
         team.Name = dto.Name;
         team.MaximumPlayersAllowed = dto.MaximumPlayersAllowed;
-        await _context.SaveChangesAsync();
 
-        var updatedTeam = await _context.Teams.FindAsync(id);
-
-        var teamplayers = dto.PlayerIds.Select(playerId => new TeamPlayer
+        _context.Set<TeamPlayer>().RemoveRange(team.TeamPlayers);
+        team.TeamPlayers = playerIds.Select(playerId => new TeamPlayer
         {
             TeamId = id,
             PlayerId = playerId
         }).ToList();
-        if(updatedTeam.MaximumPlayersAllowed >= teamplayers.Count)
-        {
-            team.TeamPlayers = teamplayers;
-            team.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-        }
-        else
-        {
-            return false;
-        }
-        
-        // here TeamPlayers is an object collection of TeamPlayer Entity
-        // but PlayerIds is a list of intergers, they dont mapp or equal. 
-        // we have to build a team player with the ids we have then assign it to team.TeamPlayers
+
+        team.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
         return true;
     }
 

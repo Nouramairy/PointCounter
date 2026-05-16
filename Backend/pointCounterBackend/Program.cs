@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.EntityFrameworkCore;
 using pointCounterBackend.Data;
 using pointCounterBackend.Services;
@@ -15,7 +16,21 @@ builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IScoreboardService, ScoreboardService>();
+builder.Services.AddScoped<IPointMatchService, PointMatchService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins(
+                  "http://localhost:4200",
+                  "https://localhost:4200",
+                  "http://127.0.0.1:4200",
+                  "https://127.0.0.1:4200")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 
 builder.Services.AddEndpointsApiExplorer();
@@ -29,12 +44,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Configure the HTTP request pipeline.
-
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAngular");
 
 app.UseAuthorization();
 
+// Serverar Angular-filer från wwwroot
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapControllers();
+
+// Viktigt för Angular routes, t.ex. /spel/guid
+app.MapFallbackToFile("index.html");
 
 app.Run();

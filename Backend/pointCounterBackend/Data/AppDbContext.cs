@@ -14,6 +14,8 @@ namespace pointCounterBackend.Data
         public DbSet<Scoreboard> Scoreboards { get; set; } = null!;
         public DbSet<TeamPlayer> TeamPlayers { get; set; } = null!;
         public DbSet<GameTeam> GameTeams { get; set; } = null!;
+        public DbSet<PointMatch> PointMatches { get; set; } = null!;
+        public DbSet<PointMatchPlayer> PointMatchPlayers { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,6 +27,8 @@ namespace pointCounterBackend.Data
             ConfigureScoreboard(modelBuilder);
             ConfigureTeamPlayer(modelBuilder);
             ConfigureGameTeam(modelBuilder);
+            ConfigurePointMatch(modelBuilder);
+            ConfigurePointMatchPlayer(modelBuilder);
         }
 
         // serperation of concern.
@@ -145,5 +149,66 @@ namespace pointCounterBackend.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
         }
+
+        private static void ConfigurePointMatch(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PointMatch>(entity =>
+            {
+                entity.ToTable("PointMatches");
+
+                entity.HasKey(m => m.Id);
+
+                entity.Property(m => m.PublicId)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.HasIndex(m => m.PublicId)
+                    .IsUnique();
+
+                entity.Property(m => m.Name)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.Property(m => m.HigherScoreWins)
+                    .IsRequired();
+
+                entity.Property(m => m.StartingScore)
+                    .IsRequired();
+
+                entity.Property(m => m.PlayersLocked)
+                    .IsRequired();
+
+                entity.Property(m => m.CreatedAt)
+                    .IsRequired();
+
+                entity.Property(m => m.UpdatedAt)
+                    .IsRequired();
+
+                entity.HasMany(m => m.Players)
+                    .WithOne(p => p.PointMatch)
+                    .HasForeignKey(p => p.PointMatchId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+        }
+        private static void ConfigurePointMatchPlayer(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PointMatchPlayer>(entity =>
+            {
+                entity.ToTable("PointMatchPlayers");
+
+                entity.HasKey(p => p.Id);
+
+                entity.Property(p => p.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(p => p.Score)
+                    .IsRequired();
+
+                entity.Property(p => p.OriginalScore)
+                    .IsRequired();
+            });
+        }
+
     }
 }

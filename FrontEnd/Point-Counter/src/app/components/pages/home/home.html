@@ -1,0 +1,85 @@
+<div class="container">
+
+  <h1>Skapa ny poängställning</h1>
+
+  <form class="form" (ngSubmit)="createMatch()">
+
+    <input
+      type="text"
+      name="name"
+      [(ngModel)]="newMatch.name"
+      placeholder="Namn på spelet"
+      required
+    >
+
+    <select
+      name="higherScoreWins"
+      [(ngModel)]="newMatch.higherScoreWins"
+    >
+      <option [ngValue]="true">
+        Höga poäng vinner
+      </option>
+
+      <option [ngValue]="false">
+        Låga poäng vinner
+      </option>
+    </select>
+
+    <input
+      type="number"
+      name="startingScore"
+      [(ngModel)]="newMatch.startingScore"
+      placeholder="Startpoäng"
+    >
+
+   <label class="checkbox-row">
+  <input
+    type="checkbox"
+    name="playersLocked"
+    [(ngModel)]="newMatch.playersLocked"
+  >
+  Lås spelare när matchen startar
+</label>
+
+    <div class="player-row">
+
+      <input
+        type="text"
+        name="playerName"
+        [(ngModel)]="playerName"
+        placeholder="Spelarnamn"
+      >
+
+      <button
+        type="button"
+        (click)="addPlayer()"
+      >
+        Lägg till spelare
+      </button>
+
+    </div>
+
+    <ul class="players-list">
+
+      <li *ngFor="let player of newMatch.playerNames; let i = index">
+
+        {{ player }}
+
+        <button
+          type="button"
+          (click)="removePlayer(i)"
+        >
+          Ta bort
+        </button>
+
+      </li>
+
+    </ul>
+
+<button class="submit-btn" type="submit">
+  Skapa match
+</button>
+
+  </form>
+
+</div>

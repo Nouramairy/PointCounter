@@ -39,7 +39,7 @@ public class GamesController : ControllerBase
         var game = await _gameService.CreateAsync(dto);
 
         if (game == null)
-            return BadRequest("Invalid team IDs. A game requires at least one existing team.");
+            return BadRequest("Ogiltiga lag-id:n. En match behöver minst ett befintligt lag.");
 
         return CreatedAtAction(nameof(GetById), new { id = game.Id }, game);
     }
@@ -72,7 +72,7 @@ public class GamesController : ControllerBase
         var result = await _gameService.AddTeamToGameAsync(gameId, teamId);
 
         if (!result)
-            return BadRequest("Game or team does not exist, or team is already added to this game.");
+            return BadRequest("Matchen eller laget finns inte, eller så är laget redan tillagt.");
 
         return NoContent();
     }

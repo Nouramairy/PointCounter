@@ -1,0 +1,77 @@
+<h1>Lag</h1>
+
+<form *ngIf="editingTeamId === null" class="form" (ngSubmit)="createTeam()">
+  <input name="name" [(ngModel)]="newTeam.name" placeholder="Lagnamn" required>
+
+  <input
+    name="max"
+    type="number"
+    [(ngModel)]="newTeam.maximumPlayersAllowed"
+    placeholder="Max antal spelare"
+    required
+  >
+
+  <h3>Välj spelare</h3>
+
+  <div class="checkbox-list">
+    <label *ngFor="let player of players">
+      <input
+        type="checkbox"
+        [checked]="newTeam.playerIds.includes(player.id)"
+        (change)="togglePlayer(player.id)"
+      >
+      {{ player.name }}
+    </label>
+  </div>
+
+  <button type="submit">Skapa lag</button>
+</form>
+
+<form *ngIf="editingTeamId !== null" class="form" (ngSubmit)="saveTeam()">
+  <input name="edit-name" [(ngModel)]="editTeam.name" placeholder="Lagnamn" required>
+
+  <input
+    name="edit-max"
+    type="number"
+    [(ngModel)]="editTeam.maximumPlayersAllowed"
+    placeholder="Max antal spelare"
+    required
+  >
+
+  <h3>Välj spelare</h3>
+  <div class="checkbox-list">
+    <label *ngFor="let player of players">
+      <input
+        type="checkbox"
+        [checked]="editTeam.playerIds.includes(player.id)"
+        (change)="toggleEditPlayer(player.id)"
+      >
+      {{ player.name }}
+    </label>
+  </div>
+
+  <button type="submit">Spara lag</button>
+  <button type="button" (click)="cancelEdit()">Avbryt</button>
+</form>
+
+<div class="grid">
+  <div class="card" *ngFor="let team of teams">
+    <h2>{{ team.name }}</h2>
+    <p>Max antal spelare: {{ team.maximumPlayersAllowed }}</p>
+
+    <h4>Spelare:</h4>
+    <ul>
+      <li *ngFor="let player of team.players">
+        {{ player }}
+      </li>
+    </ul>
+
+    <button (click)="startEdit(team)">
+      Redigera
+    </button>
+
+    <button class="danger" (click)="deleteTeam(team.id)">
+      Ta bort
+    </button>
+  </div>
+</div>

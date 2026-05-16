@@ -1,0 +1,48 @@
+<p *ngIf="loadError" class="error">{{ loadError }}</p>
+
+<p *ngIf="loading && !loadError" class="muted">Laddar poängställning…</p>
+
+<div
+  *ngIf="!loading && !loadError && game"
+  class="scoreboard-page"
+  [class.scoreboard-page--embedded]="embedded"
+>
+  <p *ngIf="!embedded" class="back"><a routerLink="/games">← Tillbaka till matcher</a></p>
+
+  <h1 *ngIf="!embedded">Poängställning</h1>
+  <h2 class="game-heading">{{ game.name }}</h2>
+  <p class="muted">Längd: {{ game.duration }} minuter</p>
+
+  <div class="save-bar" *ngIf="scores.length > 0">
+    <button
+      type="button"
+      class="save-btn"
+      (click)="saveChanges()"
+      [disabled]="!dirty || saving"
+    >
+      {{ saving ? 'Sparar…' : 'Spara ändringar' }}
+    </button>
+    <span *ngIf="dirty && !saving" class="muted unsaved-hint">Osparade ändringar.</span>
+  </div>
+
+  <div class="scoreboard" *ngIf="scores.length > 0">
+    <div class="score-grid">
+      <div class="score-card" *ngFor="let score of scores">
+        <h3>{{ score.teamName }}</h3>
+
+        <div class="score">
+          {{ score.score }}
+        </div>
+
+        <div class="buttons">
+          <button type="button" (click)="increase(score)" [disabled]="saving">+1</button>
+          <button type="button" (click)="decrease(score)" [disabled]="saving || score.score === 0">−1</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p *ngIf="scores.length === 0" class="muted">
+    Inga lag är kopplade till den här matchen ännu. Lägg till lag på sidan Matcher.
+  </p>
+</div>

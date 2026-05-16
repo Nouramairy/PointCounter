@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "build": "npm install --prefix ./FrontEnd/Point-Counter && npm run build --prefix ./FrontEnd/Point-Counter"
+  }
+}

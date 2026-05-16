@@ -1,0 +1,35 @@
+<h1>Spelare</h1>
+
+<form *ngIf="editingPlayerId === null" class="form" (ngSubmit)="createPlayer()">
+  <input name="create-name" [(ngModel)]="newPlayer.name" placeholder="Namn" required>
+  <input name="create-age" type="number" [(ngModel)]="newPlayer.age" placeholder="Ålder" required>
+  <input name="create-address" [(ngModel)]="newPlayer.address" placeholder="Adress" required>
+  <input name="create-phone" [(ngModel)]="newPlayer.phone" placeholder="Telefon" required>
+  <button type="submit">Lägg till spelare</button>
+</form>
+
+<form *ngIf="editingPlayerId !== null" class="form" (ngSubmit)="savePlayer()">
+  <input name="edit-name" [(ngModel)]="editPlayer.name" placeholder="Namn" required>
+  <input name="edit-age" type="number" [(ngModel)]="editPlayer.age" placeholder="Ålder" required>
+  <input name="edit-address" [(ngModel)]="editPlayer.address" placeholder="Adress" required>
+  <input name="edit-phone" [(ngModel)]="editPlayer.phone" placeholder="Telefon" required>
+  <button type="submit">Spara spelare</button>
+  <button type="button" (click)="cancelEdit()">Avbryt</button>
+</form>
+
+<div class="grid">
+  <div class="card" *ngFor="let player of players">
+    <h2>{{ player.name }}</h2>
+    <p>Ålder: {{ player.age }}</p>
+    <p>Adress: {{ player.address }}</p>
+    <p>Telefon: {{ player.phone }}</p>
+
+    <button (click)="startEdit(player)">
+      Redigera
+    </button>
+
+    <button class="danger" (click)="deletePlayer(player.id)">
+      Ta bort
+    </button>
+  </div>
+</div>

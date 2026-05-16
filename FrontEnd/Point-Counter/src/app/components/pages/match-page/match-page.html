@@ -1,0 +1,118 @@
+@if (match) {
+  <div class="container">
+
+    <header class="match-header">
+      <div>
+        <h1>{{ match.name }}</h1>
+
+        <p>
+          Vinstregel:
+          <strong>
+            {{ match.higherScoreWins ? 'Höga poäng vinner' : 'Låga poäng vinner' }}
+          </strong>
+        </p>
+
+        <p>
+          Startpoäng:
+          <strong>{{ match.startingScore }}</strong>
+        </p>
+
+        <p>
+          Länk till match:
+          <strong>/spel/{{ match.publicId }}</strong>
+        </p>
+      </div>
+
+      <div class="actions">
+        <button type="button" (click)="restart()">
+          Starta om matchen
+        </button>
+
+        <button type="button" (click)="clone()">
+          Skapa ny från denna
+        </button>
+      </div>
+    </header>
+
+    @if (!match.playersLocked) {
+      <section class="add-player-card">
+        <h2>Lägg till spelare</h2>
+
+        <div class="add-player-row">
+          <input
+            type="text"
+            name="newPlayerName"
+            [(ngModel)]="newPlayerName"
+            placeholder="Spelarens namn"
+            autocomplete="off"
+          >
+
+          <button type="button" (click)="addPlayer()">
+            Lägg till
+          </button>
+        </div>
+      </section>
+    }
+
+    <section class="score-section">
+      <h2>Poängställning</h2>
+
+      <table class="score-table">
+        <thead>
+          <tr>
+            <th>Placering</th>
+            <th>Spelare</th>
+            <th>Poäng</th>
+            <th>Snabbval</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (player of sortedPlayers; track player.id; let i = $index) {
+            <tr>
+              <td>#{{ i + 1 }}</td>
+
+              <td>
+                @if (match.playersLocked) {
+                  {{ player.name }}
+                } @else {
+                  <input
+                    type="text"
+                    [ngModel]="player.name"
+                    (blur)="updatePlayerName(player, $any($event.target).value)"
+                    autocomplete="off"
+                  >
+                }
+              </td>
+
+              <td>
+                <input
+                  class="score-input"
+                  type="number"
+                  [ngModel]="player.score"
+                  (ngModelChange)="updateScore(player, $event)"
+                  autocomplete="off"
+                >
+              </td>
+
+              <td>
+                <button type="button" (click)="decrease(player)">
+                  -1
+                </button>
+
+                <button type="button" (click)="increase(player)">
+                  +1
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+  </div>
+} @else {
+  <div class="container">
+    <p>Laddar match...</p>
+  </div>
+}

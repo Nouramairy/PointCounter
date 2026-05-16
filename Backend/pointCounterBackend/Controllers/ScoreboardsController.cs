@@ -28,7 +28,7 @@ public class ScoreboardsController : ControllerBase
         var scoreboard = await _scoreboardService.UpdateScoreAsync(dto);
 
         if (scoreboard == null)
-            return BadRequest("Game does not exist, or team is not added to this game.");
+            return BadRequest("Matchen finns inte, eller laget ingår inte i matchen.");
 
         return Ok(scoreboard);
     }

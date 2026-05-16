@@ -42,7 +42,7 @@ public class TeamsController : ControllerBase
         var team = await _teamService.CreateAsync(dto);
 
         if (team == null)
-            return BadRequest("Invalid player IDs or max players exceeded");
+            return BadRequest("Ogiltiga spelar-id:n eller max antal spelare har överskridits.");
 
         return CreatedAtAction(nameof(GetById), new { id = team.Id }, team);
     }
@@ -54,7 +54,7 @@ public class TeamsController : ControllerBase
         var result = await _teamService.UpdateAsync(id, dto);
 
         if (!result)
-            return BadRequest("Team saving has been failed");
+            return BadRequest("Lag kunde inte sparas.");
 
         return NoContent();
     }

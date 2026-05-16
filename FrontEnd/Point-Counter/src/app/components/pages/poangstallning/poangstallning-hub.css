@@ -1,0 +1,33 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 480px;
+  margin: 20px 0 8px;
+}
+
+label {
+  font-weight: 600;
+}
+
+select {
+  padding: 10px 12px;
+  font-size: 1rem;
+}
+
+.muted {
+  color: #6b7280;
+  max-width: 640px;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.hint {
+  margin-top: 8px;
+}
+
+.hint a {
+  color: inherit;
+}

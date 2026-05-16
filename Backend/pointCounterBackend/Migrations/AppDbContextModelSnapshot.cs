@@ -100,6 +100,76 @@ namespace pointCounterBackend.Migrations
                     b.ToTable("Players", (string)null);
                 });
 
+            modelBuilder.Entity("pointCounterBackend.Entities.PointMatch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("HigherScoreWins")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("PlayersLocked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PublicId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("StartingScore")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.ToTable("PointMatches", (string)null);
+                });
+
+            modelBuilder.Entity("pointCounterBackend.Entities.PointMatchPlayer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("OriginalScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PointMatchId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PointMatchId");
+
+                    b.ToTable("PointMatchPlayers", (string)null);
+                });
+
             modelBuilder.Entity("pointCounterBackend.Entities.Scoreboard", b =>
                 {
                     b.Property<int>("Id")
@@ -194,6 +264,17 @@ namespace pointCounterBackend.Migrations
                     b.Navigation("Team");
                 });
 
+            modelBuilder.Entity("pointCounterBackend.Entities.PointMatchPlayer", b =>
+                {
+                    b.HasOne("pointCounterBackend.Entities.PointMatch", "PointMatch")
+                        .WithMany("Players")
+                        .HasForeignKey("PointMatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PointMatch");
+                });
+
             modelBuilder.Entity("pointCounterBackend.Entities.Scoreboard", b =>
                 {
                     b.HasOne("pointCounterBackend.Entities.Game", "Game")
@@ -242,6 +323,11 @@ namespace pointCounterBackend.Migrations
             modelBuilder.Entity("pointCounterBackend.Entities.Player", b =>
                 {
                     b.Navigation("TeamPlayers");
+                });
+
+            modelBuilder.Entity("pointCounterBackend.Entities.PointMatch", b =>
+                {
+                    b.Navigation("Players");
                 });
 
             modelBuilder.Entity("pointCounterBackend.Entities.Team", b =>

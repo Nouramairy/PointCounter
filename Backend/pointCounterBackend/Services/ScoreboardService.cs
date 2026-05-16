@@ -17,20 +17,23 @@ public class ScoreboardService : IScoreboardService
 
     public async Task<List<ScoreboardDto>> GetByGameIdAsync(int gameId)
     {
-        return await _context.Scoreboards
-            .Include(s => s.Game)
-            .Include(s => s.Team)
-            .Where(s => s.GameId == gameId)
-            .Select(s => new ScoreboardDto
+        
+        return await (
+            from gt in _context.GameTeams.AsNoTracking()
+            where gt.GameId == gameId
+            join s in _context.Scoreboards.AsNoTracking()
+                on new { gt.GameId, gt.TeamId } equals new { s.GameId, s.TeamId } into scoreJoin
+            from s in scoreJoin.DefaultIfEmpty()
+            orderby gt.Team.Name
+            select new ScoreboardDto
             {
-                Id = s.Id,
-                GameId = s.GameId,
-                GameName = s.Game.Name,
-                TeamId = s.TeamId,
-                TeamName = s.Team.Name,
-                Score = s.Score
-            })
-            .ToListAsync();
+                Id = s != null ? s.Id : 0,
+                GameId = gt.GameId,
+                GameName = gt.Game.Name,
+                TeamId = gt.TeamId,
+                TeamName = gt.Team.Name,
+                Score = s != null ? s.Score : 0
+            }).ToListAsync();
     }
 
     public async Task<ScoreboardDto?> UpdateScoreAsync(UpdateScoreboardDto dto)

@@ -1,0 +1,73 @@
+<h1>Matcher</h1>
+
+<form *ngIf="editingGameId === null" class="form" (ngSubmit)="createGame()">
+  <input name="name" [(ngModel)]="newGame.name" placeholder="Namn på matchen" required>
+
+  <input
+    name="duration"
+    type="number"
+    [(ngModel)]="newGame.duration"
+    placeholder="Längd i minuter"
+    required
+  >
+
+  <h3>Välj lag</h3>
+
+  <div class="checkbox-list">
+    <label *ngFor="let team of teams">
+      <input
+        type="checkbox"
+        [checked]="newGame.teamIds.includes(team.id)"
+        (change)="toggleTeam(team.id)"
+      >
+      {{ team.name }}
+    </label>
+  </div>
+
+  <button type="submit">Skapa match</button>
+</form>
+
+<form *ngIf="editingGameId !== null" class="form" (ngSubmit)="saveGame()">
+  <input name="edit-name" [(ngModel)]="editGame.name" placeholder="Namn på matchen" required>
+
+  <input
+    name="edit-duration"
+    type="number"
+    [(ngModel)]="editGame.duration"
+    placeholder="Längd i minuter"
+    required
+  >
+
+  <button type="submit">Spara match</button>
+  <button type="button" (click)="cancelEdit()">Avbryt</button>
+</form>
+
+<div class="grid">
+  <div class="card" *ngFor="let game of games">
+    <h2>{{ game.name }}</h2>
+    <p>Längd: {{ game.duration }} minuter</p>
+
+    <h4>Lag:</h4>
+    <ul>
+      <li *ngFor="let team of game.teams">
+        {{ team }}
+      </li>
+    </ul>
+
+    <a [routerLink]="['/poangstallning']" [queryParams]="{ match: game.id }">
+      Öppna poängställning
+    </a>
+
+    <br><br>
+
+    <button (click)="startEdit(game)">
+      Redigera
+    </button>
+
+    <br><br>
+
+    <button class="danger" (click)="deleteGame(game.id)">
+      Ta bort
+    </button>
+  </div>
+</div>
