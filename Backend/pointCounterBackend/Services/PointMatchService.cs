@@ -200,4 +200,26 @@ public class PointMatchService : IPointMatchService
             }).ToList()
         };
     }
+    public async Task<PointMatchDto?> DeletePlayerAsync(string publicId, int playerId)
+    {
+    var match = await GetMatchAsync(publicId);
+
+    if (match == null)
+        return null;
+
+    if (match.PlayersLocked)
+        return null;
+
+    var player = match.Players.FirstOrDefault(p => p.Id == playerId);
+
+    if (player == null)
+        return null;
+
+    match.Players.Remove(player);
+    match.UpdatedAt = DateTime.UtcNow;
+
+    await _context.SaveChangesAsync();
+
+    return MapToDto(match);
+    }
 }

@@ -50,6 +50,12 @@ export class PointMatchService {
     );
   }
 
+  deletePlayer(publicId: string, playerId: number): Observable<PointMatch> {
+  return this.http.delete<PointMatch>(
+    `${this.apiUrl}/${publicId}/players/${playerId}`
+  );
+  }
+
   clone(publicId: string): Observable<PointMatch> {
     return this.http.post<PointMatch>(
       `${this.apiUrl}/${publicId}/clone`,

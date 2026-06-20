@@ -1,84 +1,98 @@
-<div class="container">
+<div class="home-page">
 
-  <h1>Skapa ny poängställning</h1>
+  <section class="hero">
+    <div>
+      <span class="eyebrow">Point Counter</span>
+      <h1>Create a Quick Match</h1>
+      <p>
+        Start a scoreboard, invite others with a link, and update scores instantly.
+      </p>
+    </div>
+  </section>
 
-  <form class="form" (ngSubmit)="createMatch()">
+  <form class="match-card" (ngSubmit)="createMatch()">
 
-    <input
-      type="text"
-      name="name"
-      [(ngModel)]="newMatch.name"
-      placeholder="Namn på spelet"
-      required
-    >
-
-    <select
-      name="higherScoreWins"
-      [(ngModel)]="newMatch.higherScoreWins"
-    >
-      <option [ngValue]="true">
-        Höga poäng vinner
-      </option>
-
-      <option [ngValue]="false">
-        Låga poäng vinner
-      </option>
-    </select>
-
-    <input
-      type="number"
-      name="startingScore"
-      [(ngModel)]="newMatch.startingScore"
-      placeholder="Startpoäng"
-    >
-
-   <label class="checkbox-row">
-  <input
-    type="checkbox"
-    name="playersLocked"
-    [(ngModel)]="newMatch.playersLocked"
-  >
-  Lås spelare när matchen startar
-</label>
-
-    <div class="player-row">
-
+    <div class="form-group">
+      <label>Game Name</label>
       <input
         type="text"
-        name="playerName"
-        [(ngModel)]="playerName"
-        placeholder="Spelarnamn"
+        name="name"
+        [(ngModel)]="newMatch.name"
+        placeholder="Example: Friday Pool"
+        autocomplete="off"
+        required
       >
-
-      <button
-        type="button"
-        (click)="addPlayer()"
-      >
-        Lägg till spelare
-      </button>
-
     </div>
 
-    <ul class="players-list">
-
-      <li *ngFor="let player of newMatch.playerNames; let i = index">
-
-        {{ player }}
-
-        <button
-          type="button"
-          (click)="removePlayer(i)"
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Winning Rule</label>
+        <select
+          name="higherScoreWins"
+          [(ngModel)]="newMatch.higherScoreWins"
         >
-          Ta bort
+          <option [ngValue]="true">High score wins</option>
+          <option [ngValue]="false">Low score wins</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Starting Score</label>
+        <input
+          type="number"
+          name="startingScore"
+          [(ngModel)]="newMatch.startingScore"
+          autocomplete="off"
+        >
+      </div>
+    </div>
+
+    <label class="lock-row">
+      <input
+        type="checkbox"
+        name="playersLocked"
+        [(ngModel)]="newMatch.playersLocked"
+      >
+      <span>Lock players when the match starts</span>
+    </label>
+
+    <section class="players-box">
+      <div class="section-header">
+        <div>
+          <h2>Preset Players</h2>
+          <p>Add players now, or let participants create themselves later.</p>
+        </div>
+      </div>
+
+      <div class="add-player-row">
+        <input
+          type="text"
+          name="playerName"
+          [(ngModel)]="playerName"
+          placeholder="Player name"
+          autocomplete="off"
+        >
+
+        <button type="button" (click)="addPlayer()">
+          Add
         </button>
+      </div>
 
-      </li>
+      @if (newMatch.playerNames.length > 0) {
+        <div class="player-chips">
+          @for (player of newMatch.playerNames; track player; let i = $index) {
+            <span class="chip">
+              {{ player }}
+              <button type="button" (click)="removePlayer(i)">×</button>
+            </span>
+          }
+        </div>
+      }
+    </section>
 
-    </ul>
-
-<button class="submit-btn" type="submit">
-  Skapa match
-</button>
+    <button class="submit-btn" type="submit">
+      Start Quick Match
+    </button>
 
   </form>
 

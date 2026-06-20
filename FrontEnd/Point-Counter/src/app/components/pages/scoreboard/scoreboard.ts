@@ -10,7 +10,7 @@ import { ScoreboardView } from './scoreboard-view';
     @if (gameId > 0) {
       <app-scoreboard-view [gameId]="gameId" [embedded]="false" />
     } @else {
-      <p class="error">Ogiltigt match-id.</p>
+      <p class="error">Invalid match ID.</p>
     }
   `,
   styles: [

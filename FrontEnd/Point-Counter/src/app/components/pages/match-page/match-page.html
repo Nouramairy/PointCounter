@@ -1,118 +1,105 @@
 @if (match) {
-  <div class="container">
+  <div class="match-page">
 
-    <header class="match-header">
+    <header class="match-hero">
       <div>
+        <span class="eyebrow">Active Match</span>
         <h1>{{ match.name }}</h1>
 
         <p>
-          Vinstregel:
-          <strong>
-            {{ match.higherScoreWins ? 'Höga poäng vinner' : 'Låga poäng vinner' }}
-          </strong>
+          {{ match.higherScoreWins ? 'High score wins' : 'Low score wins' }}
+          · Starting score {{ match.startingScore }}
         </p>
 
-        <p>
-          Startpoäng:
-          <strong>{{ match.startingScore }}</strong>
-        </p>
-
-        <p>
-          Länk till match:
-          <strong>/spel/{{ match.publicId }}</strong>
-        </p>
+        <div class="share-box">
+          /match/{{ match.publicId }}
+        </div>
       </div>
 
-      <div class="actions">
-        <button type="button" (click)="restart()">
-          Starta om matchen
-        </button>
-
-        <button type="button" (click)="clone()">
-          Skapa ny från denna
-        </button>
+      <div class="hero-actions">
+        <button type="button" (click)="restart()">Restart</button>
+        <button type="button" (click)="clone()">Create New</button>
       </div>
     </header>
 
     @if (!match.playersLocked) {
-      <section class="add-player-card">
-        <h2>Lägg till spelare</h2>
+      <section class="panel add-player-panel">
+        <h2>Add Player</h2>
 
         <div class="add-player-row">
           <input
             type="text"
             name="newPlayerName"
             [(ngModel)]="newPlayerName"
-            placeholder="Spelarens namn"
+            placeholder="Player name"
             autocomplete="off"
           >
 
           <button type="button" (click)="addPlayer()">
-            Lägg till
+            Add
           </button>
         </div>
       </section>
     }
 
-    <section class="score-section">
-      <h2>Poängställning</h2>
+    <section class="panel">
+      <div class="table-header">
+        <div>
+          <h2>Scoreboard</h2>
+          <p>Edit scores directly or use the quick buttons.</p>
+        </div>
+      </div>
 
-      <table class="score-table">
-        <thead>
-          <tr>
-            <th>Placering</th>
-            <th>Spelare</th>
-            <th>Poäng</th>
-            <th>Snabbval</th>
-          </tr>
-        </thead>
+      <div class="score-grid">
+        @for (player of sortedPlayers; track player.id; let i = $index) {
+          <article class="score-card">
+            <div class="rank">#{{ i + 1 }}</div>
 
-        <tbody>
-          @for (player of sortedPlayers; track player.id; let i = $index) {
-            <tr>
-              <td>#{{ i + 1 }}</td>
+            @if (match.playersLocked) {
+              <h3>{{ player.name }}</h3>
+            } @else {
+              <input
+                class="name-input"
+                type="text"
+                [ngModel]="player.name"
+                (blur)="updatePlayerName(player, $any($event.target).value)"
+                autocomplete="off"
+              >
+            }
 
-              <td>
-                @if (match.playersLocked) {
-                  {{ player.name }}
-                } @else {
-                  <input
-                    type="text"
-                    [ngModel]="player.name"
-                    (blur)="updatePlayerName(player, $any($event.target).value)"
-                    autocomplete="off"
-                  >
-                }
-              </td>
+            <div class="score-value">
+              {{ player.score }}
+            </div>
 
-              <td>
-                <input
-                  class="score-input"
-                  type="number"
-                  [ngModel]="player.score"
-                  (ngModelChange)="updateScore(player, $event)"
-                  autocomplete="off"
-                >
-              </td>
+            <div class="score-controls">
+              <button type="button" (click)="decrease(player)">−</button>
 
-              <td>
-                <button type="button" (click)="decrease(player)">
-                  -1
-                </button>
+              <input
+                type="number"
+                [ngModel]="player.score"
+                (ngModelChange)="updateScore(player, $event)"
+                autocomplete="off"
+              >
 
-                <button type="button" (click)="increase(player)">
-                  +1
-                </button>
-              </td>
-            </tr>
+              <button type="button" (click)="increase(player)">+</button>
+            </div>
+            @if (!match.playersLocked) {
+            <button
+              class="delete-player-btn"
+              type="button"
+              (click)="deletePlayer(player)"
+            >
+              Remove Player
+            </button>
           }
-        </tbody>
-      </table>
+          </article>
+        }
+      </div>
     </section>
 
   </div>
 } @else {
-  <div class="container">
-    <p>Laddar match...</p>
+  <div class="match-page">
+    <p>Loading match...</p>
   </div>
 }

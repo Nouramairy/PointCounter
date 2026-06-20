@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize, timeout } from 'rxjs/operators';
 
 import { TeamService } from '../../../services/Team.service';
 import { PlayerService } from '../../../services/player.service';
@@ -12,6 +13,7 @@ import { Player } from '../../../models/player.model';
 
 @Component({
   selector: 'app-teams',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './teams.html',
   styleUrl: './teams.css',
@@ -20,6 +22,9 @@ export class Teams implements OnInit {
   teams: Team[] = [];
   players: Player[] = [];
   editingTeamId: number | null = null;
+  showTeams = false;
+  loadingTeams = false;
+  teamsLoadError: string | null = null;
 
   newTeam: CreateTeam = {
     name: '',
@@ -39,16 +44,35 @@ export class Teams implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadTeams();
     this.loadPlayers();
   }
 
+  showAllTeams(): void {
+    if (this.loadingTeams) {
+      return;
+    }
+
+    this.showTeams = true;
+    this.loadTeams();
+  }
+
   loadTeams(): void {
-    this.teamService.getAll().subscribe({
-      next: teams => (this.teams = teams),
+    this.loadingTeams = true;
+    this.teamsLoadError = null;
+
+    this.teamService.getAll().pipe(
+      timeout(4000),
+      finalize(() => (this.loadingTeams = false))
+    ).subscribe({
+      next: teams => {
+        this.teams = teams;
+      },
       error: err => {
         console.error(err);
-        this.notifications.show(getApiErrorMessage(err), 'error');
+        this.teamsLoadError = err instanceof Error && err.name === 'TimeoutError'
+          ? 'Could not load teams. Check that the API is running.'
+          : getApiErrorMessage(err);
+        this.notifications.show(this.teamsLoadError, 'error');
       }
     });
   }
@@ -74,8 +98,10 @@ export class Teams implements OnInit {
   createTeam(): void {
     this.teamService.create(this.newTeam).subscribe({
       next: () => {
-        this.notifications.show('Laget har skapats.', 'success');
-        this.loadTeams();
+        this.notifications.show('The team has been created.', 'success');
+        if (this.showTeams) {
+          this.loadTeams();
+        }
 
         this.newTeam = {
           name: '',
@@ -135,9 +161,11 @@ export class Teams implements OnInit {
 
     this.teamService.update(this.editingTeamId, this.editTeam).subscribe({
       next: () => {
-        this.notifications.show('Laget har uppdaterats.', 'success');
+        this.notifications.show('The team has been updated.', 'success');
         this.cancelEdit();
-        this.loadTeams();
+        if (this.showTeams) {
+          this.loadTeams();
+        }
       },
       error: err => {
         console.error(err);
@@ -149,7 +177,7 @@ export class Teams implements OnInit {
   deleteTeam(id: number): void {
     this.teamService.delete(id).subscribe({
       next: () => {
-        this.notifications.show('Laget har tagits bort.', 'success');
+        this.notifications.show('The team has been deleted.', 'success');
         this.loadTeams();
       },
       error: err => {

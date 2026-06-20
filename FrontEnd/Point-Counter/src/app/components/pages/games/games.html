@@ -1,73 +1,109 @@
-<h1>Matcher</h1>
+<section class="manage-section">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Match Management</span>
+      <h1>Matches</h1>
+      <p>Create scheduled matches, connect teams, and open scoreboards.</p>
+    </div>
+  </header>
 
-<form *ngIf="editingGameId === null" class="form" (ngSubmit)="createGame()">
-  <input name="name" [(ngModel)]="newGame.name" placeholder="Namn på matchen" required>
+  <form *ngIf="editingGameId === null" #createGameForm="ngForm" class="form" (ngSubmit)="createGame()">
+    <input name="name" [(ngModel)]="newGame.name" placeholder="Match name" required>
 
-  <input
-    name="duration"
-    type="number"
-    [(ngModel)]="newGame.duration"
-    placeholder="Längd i minuter"
-    required
-  >
+    <input
+      name="duration"
+      type="number"
+      [(ngModel)]="newGame.duration"
+      placeholder="Duration in minutes"
+      min="1"
+      required
+    >
 
-  <h3>Välj lag</h3>
+    <h3>Select Teams</h3>
 
-  <div class="checkbox-list">
-    <label *ngFor="let team of teams">
-      <input
-        type="checkbox"
-        [checked]="newGame.teamIds.includes(team.id)"
-        (change)="toggleTeam(team.id)"
-      >
-      {{ team.name }}
-    </label>
-  </div>
+    <div class="checkbox-list">
+      <label *ngFor="let team of teams">
+        <input
+          type="checkbox"
+          [checked]="newGame.teamIds.includes(team.id)"
+          (change)="toggleTeam(team.id)"
+        >
+        {{ team.name }}
+      </label>
+    </div>
 
-  <button type="submit">Skapa match</button>
-</form>
+    <button class="primary-button" type="submit" [disabled]="createGameForm.invalid">Create Match</button>
+  </form>
 
-<form *ngIf="editingGameId !== null" class="form" (ngSubmit)="saveGame()">
-  <input name="edit-name" [(ngModel)]="editGame.name" placeholder="Namn på matchen" required>
+  <form *ngIf="editingGameId !== null" #editGameForm="ngForm" class="form" (ngSubmit)="saveGame()">
+    <input name="edit-name" [(ngModel)]="editGame.name" placeholder="Match name" required>
 
-  <input
-    name="edit-duration"
-    type="number"
-    [(ngModel)]="editGame.duration"
-    placeholder="Längd i minuter"
-    required
-  >
+    <input
+      name="edit-duration"
+      type="number"
+      [(ngModel)]="editGame.duration"
+      placeholder="Duration in minutes"
+      min="1"
+      required
+    >
 
-  <button type="submit">Spara match</button>
-  <button type="button" (click)="cancelEdit()">Avbryt</button>
-</form>
+    <div class="form-actions">
+      <button class="primary-button" type="submit" [disabled]="editGameForm.invalid">Save Match</button>
+      <button class="secondary-button" type="button" (click)="cancelEdit()">Cancel</button>
+    </div>
+  </form>
 
-<div class="grid">
-  <div class="card" *ngFor="let game of games">
-    <h2>{{ game.name }}</h2>
-    <p>Längd: {{ game.duration }} minuter</p>
-
-    <h4>Lag:</h4>
-    <ul>
-      <li *ngFor="let team of game.teams">
-        {{ team }}
-      </li>
-    </ul>
-
-    <a [routerLink]="['/poangstallning']" [queryParams]="{ match: game.id }">
-      Öppna poängställning
-    </a>
-
-    <br><br>
-
-    <button (click)="startEdit(game)">
-      Redigera
+  <section class="list-toolbar">
+    <div>
+      <h2>Match Directory</h2>
+      <p>Show every match when you need to edit details, delete records, or open a scoreboard.</p>
+    </div>
+    <button class="show-button" type="button" (click)="showAllMatches()" [disabled]="loadingGames">
+      {{ loadingGames ? 'Loading Matches...' : 'Show All Matches' }}
     </button>
+  </section>
 
-    <br><br>
+  <p *ngIf="showGames && gamesLoadError" class="error-state">
+    {{ gamesLoadError }}
+  </p>
 
-    <button class="danger" (click)="deleteGame(game.id)">
-      Ta bort
-    </button>
+  <p *ngIf="showGames && loadingGames" class="status-text">Loading matches...</p>
+
+  <p *ngIf="showGames && !loadingGames && !gamesLoadError && games.length === 0" class="empty-state">
+    No matches have been found.
+  </p>
+
+  <div class="grid" *ngIf="showGames && !loadingGames && games.length > 0">
+    <article class="card" *ngFor="let game of games">
+      <div class="card-header">
+        <div class="avatar">{{ game.name.charAt(0).toUpperCase() }}</div>
+        <div>
+          <h2>{{ game.name }}</h2>
+          <span>Match #{{ game.id }}</span>
+        </div>
+      </div>
+
+      <div class="metric">
+        <span>Duration</span>
+        <strong>{{ game.duration }} min</strong>
+      </div>
+
+      <section class="member-list">
+        <h3>Teams</h3>
+        <p *ngIf="game.teams.length === 0">No teams connected.</p>
+        <div class="chips" *ngIf="game.teams.length > 0">
+          <span *ngFor="let team of game.teams">{{ team }}</span>
+        </div>
+      </section>
+
+      <a class="scoreboard-link" [routerLink]="['/create-match/scoreboard']" [queryParams]="{ match: game.id }">
+        Open Scoreboard
+      </a>
+
+      <div class="card-actions">
+        <button class="edit-button" type="button" (click)="startEdit(game)">Edit</button>
+        <button class="delete-button" type="button" (click)="deleteGame(game.id)">Delete</button>
+      </div>
+    </article>
   </div>
-</div>
+</section>

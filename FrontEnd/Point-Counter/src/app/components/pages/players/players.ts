@@ -1,31 +1,39 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize, timeout } from 'rxjs/operators';
 
 import { PlayerService } from '../../../services/player.service';
 import { NotificationService } from '../../../services/notification.service';
 import { getApiErrorMessage } from '../../../utils/http-error.util';
 import { CreatePlayer, Player, UpdatePlayer } from '../../../models/player.model';
 
+type PlayerForm = Omit<CreatePlayer, 'age'> & { age: number | null };
+
 @Component({
   selector: 'app-players',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './players.html',
   styleUrl: './players.css',
 })
-export class Players implements OnInit {
+export class Players {
   players: Player[] = [];
   editingPlayerId: number | null = null;
+  showPlayers = false;
+  loadingPlayers = false;
+  playersLoaded = false;
+  playersLoadError: string | null = null;
 
-  newPlayer: CreatePlayer = {
+  newPlayer: PlayerForm = {
     name: '',
-    age: 0,
+    age: null,
     address: '',
     phone: ''
   };
-  editPlayer: UpdatePlayer = {
+  editPlayer: PlayerForm = {
     name: '',
-    age: 0,
+    age: null,
     address: '',
     phone: ''
   };
@@ -35,29 +43,62 @@ export class Players implements OnInit {
     private notifications: NotificationService
   ) {}
 
-  ngOnInit(): void {
+  showAllPlayers(): void {
+    if (this.loadingPlayers) {
+      return;
+    }
+
+    this.showPlayers = true;
     this.loadPlayers();
   }
 
   loadPlayers(): void {
-    this.playerService.getAll().subscribe({
-      next: players => (this.players = players),
+    this.loadingPlayers = true;
+    this.playersLoadError = null;
+
+    this.playerService.getAll().pipe(
+      timeout(4000),
+      finalize(() => (this.loadingPlayers = false))
+    ).subscribe({
+      next: players => {
+        this.players = players;
+        this.playersLoaded = true;
+      },
       error: err => {
         console.error(err);
-        this.notifications.show(getApiErrorMessage(err), 'error');
+        this.playersLoaded = false;
+        this.playersLoadError = err instanceof Error && err.name === 'TimeoutError'
+          ? 'Could not load players. Check that the API is running.'
+          : getApiErrorMessage(err);
+        this.notifications.show(this.playersLoadError, 'error');
       }
     });
   }
 
   createPlayer(): void {
-    this.playerService.create(this.newPlayer).subscribe({
+    if (this.newPlayer.age === null) {
+      this.notifications.show('Enter an age between 1 and 120.', 'error');
+      return;
+    }
+
+    const player: CreatePlayer = {
+      ...this.newPlayer,
+      name: this.newPlayer.name.trim(),
+      address: this.newPlayer.address.trim(),
+      phone: this.newPlayer.phone.trim(),
+      age: this.newPlayer.age
+    };
+
+    this.playerService.create(player).subscribe({
       next: () => {
-        this.notifications.show('Spelaren har lagts till.', 'success');
-        this.loadPlayers();
+        this.notifications.show('The player has been added.', 'success');
+        if (this.showPlayers) {
+          this.loadPlayers();
+        }
 
         this.newPlayer = {
           name: '',
-          age: 0,
+          age: null,
           address: '',
           phone: ''
         };
@@ -83,7 +124,7 @@ export class Players implements OnInit {
     this.editingPlayerId = null;
     this.editPlayer = {
       name: '',
-      age: 0,
+      age: null,
       address: '',
       phone: ''
     };
@@ -94,11 +135,26 @@ export class Players implements OnInit {
       return;
     }
 
-    this.playerService.update(this.editingPlayerId, this.editPlayer).subscribe({
+    if (this.editPlayer.age === null) {
+      this.notifications.show('Enter an age between 1 and 120.', 'error');
+      return;
+    }
+
+    const player: UpdatePlayer = {
+      ...this.editPlayer,
+      name: this.editPlayer.name.trim(),
+      address: this.editPlayer.address.trim(),
+      phone: this.editPlayer.phone.trim(),
+      age: this.editPlayer.age
+    };
+
+    this.playerService.update(this.editingPlayerId, player).subscribe({
       next: () => {
-        this.notifications.show('Spelaren har uppdaterats.', 'success');
+        this.notifications.show('The player has been updated.', 'success');
         this.cancelEdit();
-        this.loadPlayers();
+        if (this.showPlayers) {
+          this.loadPlayers();
+        }
       },
       error: err => {
         console.error(err);
@@ -110,7 +166,7 @@ export class Players implements OnInit {
   deletePlayer(id: number): void {
     this.playerService.delete(id).subscribe({
       next: () => {
-        this.notifications.show('Spelaren har tagits bort.', 'success');
+        this.notifications.show('The player has been deleted.', 'success');
         this.loadPlayers();
       },
       error: err => {

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { finalize, timeout } from 'rxjs/operators';
 
 import { GameService } from '../../../services/Game.service';
 import { TeamService } from '../../../services/Team.service';
@@ -13,6 +14,7 @@ import { Team } from '../../../models/team.model';
 
 @Component({
   selector: 'app-games',
+  standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './games.html',  
   styleUrl: './games.css',
@@ -21,6 +23,9 @@ export class Games implements OnInit {
   games: Game[] = [];
   teams: Team[] = [];
   editingGameId: number | null = null;
+  showGames = false;
+  loadingGames = false;
+  gamesLoadError: string | null = null;
 
   newGame: CreateGame = {
     name: '',
@@ -39,16 +44,35 @@ export class Games implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadGames();
     this.loadTeams();
   }
 
+  showAllMatches(): void {
+    if (this.loadingGames) {
+      return;
+    }
+
+    this.showGames = true;
+    this.loadGames();
+  }
+
   loadGames(): void {
-    this.gameService.getAll().subscribe({
-      next: games => (this.games = games),
+    this.loadingGames = true;
+    this.gamesLoadError = null;
+
+    this.gameService.getAll().pipe(
+      timeout(4000),
+      finalize(() => (this.loadingGames = false))
+    ).subscribe({
+      next: games => {
+        this.games = games;
+      },
       error: err => {
         console.error(err);
-        this.notifications.show(getApiErrorMessage(err), 'error');
+        this.gamesLoadError = err instanceof Error && err.name === 'TimeoutError'
+          ? 'Could not load matches. Check that the API is running.'
+          : getApiErrorMessage(err);
+        this.notifications.show(this.gamesLoadError, 'error');
       }
     });
   }
@@ -74,8 +98,10 @@ export class Games implements OnInit {
   createGame(): void {
     this.gameService.create(this.newGame).subscribe({
       next: () => {
-        this.notifications.show('Matchen har skapats.', 'success');
-        this.loadGames();
+        this.notifications.show('The match has been created.', 'success');
+        if (this.showGames) {
+          this.loadGames();
+        }
 
         this.newGame = {
           name: '',
@@ -113,9 +139,11 @@ export class Games implements OnInit {
 
     this.gameService.update(this.editingGameId, this.editGame).subscribe({
       next: () => {
-        this.notifications.show('Matchen har uppdaterats.', 'success');
+        this.notifications.show('The match has been updated.', 'success');
         this.cancelEdit();
-        this.loadGames();
+        if (this.showGames) {
+          this.loadGames();
+        }
       },
       error: err => {
         console.error(err);
@@ -127,7 +155,7 @@ export class Games implements OnInit {
   deleteGame(id: number): void {
     this.gameService.delete(id).subscribe({
       next: () => {
-        this.notifications.show('Matchen har tagits bort.', 'success');
+        this.notifications.show('The match has been deleted.', 'success');
         this.loadGames();
       },
       error: err => {

@@ -44,7 +44,7 @@ export class MatchPage implements OnInit {
         this.cdr.detectChanges();
       },
       error: err => {
-        console.error('Kunde inte hämta matchen:', err);
+        console.error('Could not load the match:', err);
         this.router.navigate(['/404']);
       }
     });
@@ -82,7 +82,19 @@ export class MatchPage implements OnInit {
       error: err => console.error(err)
     });
   }
+  deletePlayer(player: PointMatchPlayer): void {
+  const confirmed = confirm(`Do you want to remove ${player.name}?`);
 
+  if (!confirmed) return;
+
+  this.pointMatchService.deletePlayer(this.publicId, player.id).subscribe({
+    next: match => {
+      this.match = match;
+      this.cdr.detectChanges();
+    },
+    error: err => console.error(err)
+    });
+  }
   updatePlayerName(player: PointMatchPlayer, name: string): void {
     const trimmedName = name.trim();
 
@@ -109,7 +121,7 @@ export class MatchPage implements OnInit {
 
   clone(): void {
     this.pointMatchService.clone(this.publicId).subscribe({
-      next: match => this.router.navigate(['/spel', match.publicId]),
+      next: match => this.router.navigate(['/match', match.publicId]),
       error: err => console.error(err)
     });
   }

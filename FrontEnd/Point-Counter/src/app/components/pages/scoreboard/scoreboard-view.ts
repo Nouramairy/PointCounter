@@ -114,7 +114,7 @@ export class ScoreboardView implements OnChanges {
         next: rows => {
           this.applyScoresFromServer(rows);
           this.saving = false;
-          this.notifications.show('Dina ändringar har sparats.', 'success');
+          this.notifications.show('Your changes have been saved.', 'success');
         },
         error: err => {
           console.error(err);

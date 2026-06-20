@@ -55,7 +55,7 @@ export class Home {
 
         console.log(match);
 
-        this.router.navigate(['/spel', match.publicId]);
+        this.router.navigate(['/match', match.publicId]);
       },
 
       error: err => {

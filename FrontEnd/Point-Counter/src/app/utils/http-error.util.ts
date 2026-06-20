@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 export function getApiErrorMessage(error: unknown): string {
   if (!(error instanceof HttpErrorResponse)) {
-    return 'Ett oväntat fel inträffade.';
+    return 'An unexpected error occurred.';
   }
 
   const body = error.error;
@@ -47,11 +47,11 @@ export function getApiErrorMessage(error: unknown): string {
   }
 
   if (error.status === 404) {
-    return 'Resursen hittades inte.';
+    return 'The resource was not found.';
   }
   if (error.status === 0) {
-    return 'Kunde inte nå servern. Kontrollera att API:et körs.';
+    return 'Could not reach the server. Check that the API is running.';
   }
 
-  return `Begäran misslyckades (HTTP ${error.status}).`;
+  return `Request failed (HTTP ${error.status}).`;
 }

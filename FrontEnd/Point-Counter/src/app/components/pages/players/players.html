@@ -1,35 +1,86 @@
-<h1>Spelare</h1>
+<section class="players-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Roster Management</span>
+      <h1>Players</h1>
+      <p>Add new players, review contact details, and keep the roster up to date.</p>
+    </div>
+  </header>
 
-<form *ngIf="editingPlayerId === null" class="form" (ngSubmit)="createPlayer()">
-  <input name="create-name" [(ngModel)]="newPlayer.name" placeholder="Namn" required>
-  <input name="create-age" type="number" [(ngModel)]="newPlayer.age" placeholder="Ålder" required>
-  <input name="create-address" [(ngModel)]="newPlayer.address" placeholder="Adress" required>
-  <input name="create-phone" [(ngModel)]="newPlayer.phone" placeholder="Telefon" required>
-  <button type="submit">Lägg till spelare</button>
-</form>
+  <form *ngIf="editingPlayerId === null" #createPlayerForm="ngForm" class="form" (ngSubmit)="createPlayer()">
+    <input name="create-name" [(ngModel)]="newPlayer.name" placeholder="Name" required>
+    <input name="create-age" type="number" [(ngModel)]="newPlayer.age" placeholder="Age" min="1" max="120" required>
+    <input name="create-address" [(ngModel)]="newPlayer.address" placeholder="Address" required>
+    <input name="create-phone" [(ngModel)]="newPlayer.phone" placeholder="Phone" required>
+    <button class="primary-button" type="submit" [disabled]="createPlayerForm.invalid">Add Player</button>
+  </form>
 
-<form *ngIf="editingPlayerId !== null" class="form" (ngSubmit)="savePlayer()">
-  <input name="edit-name" [(ngModel)]="editPlayer.name" placeholder="Namn" required>
-  <input name="edit-age" type="number" [(ngModel)]="editPlayer.age" placeholder="Ålder" required>
-  <input name="edit-address" [(ngModel)]="editPlayer.address" placeholder="Adress" required>
-  <input name="edit-phone" [(ngModel)]="editPlayer.phone" placeholder="Telefon" required>
-  <button type="submit">Spara spelare</button>
-  <button type="button" (click)="cancelEdit()">Avbryt</button>
-</form>
+  <form *ngIf="editingPlayerId !== null" #editPlayerForm="ngForm" class="form" (ngSubmit)="savePlayer()">
+    <input name="edit-name" [(ngModel)]="editPlayer.name" placeholder="Name" required>
+    <input name="edit-age" type="number" [(ngModel)]="editPlayer.age" placeholder="Age" min="1" max="120" required>
+    <input name="edit-address" [(ngModel)]="editPlayer.address" placeholder="Address" required>
+    <input name="edit-phone" [(ngModel)]="editPlayer.phone" placeholder="Phone" required>
+    <button class="primary-button" type="submit" [disabled]="editPlayerForm.invalid">Save Player</button>
+    <button class="secondary-button" type="button" (click)="cancelEdit()">Cancel</button>
+  </form>
 
-<div class="grid">
-  <div class="card" *ngFor="let player of players">
-    <h2>{{ player.name }}</h2>
-    <p>Ålder: {{ player.age }}</p>
-    <p>Adress: {{ player.address }}</p>
-    <p>Telefon: {{ player.phone }}</p>
-
-    <button (click)="startEdit(player)">
-      Redigera
+  <section class="list-toolbar">
+    <div>
+      <h2>Player Directory</h2>
+      <p>
+        View the full list when you need to edit or remove players.
+        <span *ngIf="playersLoaded">{{ players.length }} loaded.</span>
+      </p>
+    </div>
+    <button class="show-button" type="button" (click)="showAllPlayers()" [disabled]="loadingPlayers">
+      {{ loadingPlayers ? 'Loading Players...' : showPlayers ? 'Refresh Players' : 'Show All Players' }}
     </button>
+  </section>
 
-    <button class="danger" (click)="deletePlayer(player.id)">
-      Ta bort
-    </button>
+  <p *ngIf="showPlayers && playersLoadError" class="error-state">
+    {{ playersLoadError }}
+  </p>
+
+  <p *ngIf="showPlayers && loadingPlayers && !playersLoaded" class="status-text">Loading players...</p>
+
+  <p *ngIf="showPlayers && !loadingPlayers && !playersLoadError && players.length === 0" class="empty-state">
+    No players have been found.
+  </p>
+
+  <div class="grid" *ngIf="showPlayers && !loadingPlayers && players.length > 0">
+    <article class="card" *ngFor="let player of players">
+      <div class="card-header">
+        <div class="avatar">{{ player.name.charAt(0).toUpperCase() }}</div>
+        <div>
+          <h2>{{ player.name }}</h2>
+          <span>Player #{{ player.id }}</span>
+        </div>
+      </div>
+
+      <dl class="details">
+        <div>
+          <dt>Age</dt>
+          <dd>{{ player.age }}</dd>
+        </div>
+        <div>
+          <dt>Address</dt>
+          <dd>{{ player.address }}</dd>
+        </div>
+        <div>
+          <dt>Phone</dt>
+          <dd>{{ player.phone }}</dd>
+        </div>
+      </dl>
+
+      <div class="card-actions">
+        <button class="edit-button" type="button" (click)="startEdit(player)">
+          Edit
+        </button>
+
+        <button class="delete-button" type="button" (click)="deletePlayer(player.id)">
+          Delete
+        </button>
+      </div>
+    </article>
   </div>
-</div>
+</section>

@@ -1,77 +1,117 @@
-<h1>Lag</h1>
+<section class="manage-section">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Team Management</span>
+      <h1>Teams</h1>
+      <p>Create teams, assign players, and manage participation limits.</p>
+    </div>
+  </header>
 
-<form *ngIf="editingTeamId === null" class="form" (ngSubmit)="createTeam()">
-  <input name="name" [(ngModel)]="newTeam.name" placeholder="Lagnamn" required>
+  <form *ngIf="editingTeamId === null" #createTeamForm="ngForm" class="form" (ngSubmit)="createTeam()">
+    <input name="name" [(ngModel)]="newTeam.name" placeholder="Team name" required>
 
-  <input
-    name="max"
-    type="number"
-    [(ngModel)]="newTeam.maximumPlayersAllowed"
-    placeholder="Max antal spelare"
-    required
-  >
+    <input
+      name="max"
+      type="number"
+      [(ngModel)]="newTeam.maximumPlayersAllowed"
+      placeholder="Maximum players"
+      min="1"
+      required
+    >
 
-  <h3>Välj spelare</h3>
+    <h3>Select Players</h3>
 
-  <div class="checkbox-list">
-    <label *ngFor="let player of players">
-      <input
-        type="checkbox"
-        [checked]="newTeam.playerIds.includes(player.id)"
-        (change)="togglePlayer(player.id)"
-      >
-      {{ player.name }}
-    </label>
-  </div>
+    <div class="checkbox-list">
+      <label *ngFor="let player of players">
+        <input
+          type="checkbox"
+          [checked]="newTeam.playerIds.includes(player.id)"
+          (change)="togglePlayer(player.id)"
+        >
+        {{ player.name }}
+      </label>
+    </div>
 
-  <button type="submit">Skapa lag</button>
-</form>
+    <button class="primary-button" type="submit" [disabled]="createTeamForm.invalid">Create Team</button>
+  </form>
 
-<form *ngIf="editingTeamId !== null" class="form" (ngSubmit)="saveTeam()">
-  <input name="edit-name" [(ngModel)]="editTeam.name" placeholder="Lagnamn" required>
+  <form *ngIf="editingTeamId !== null" #editTeamForm="ngForm" class="form" (ngSubmit)="saveTeam()">
+    <input name="edit-name" [(ngModel)]="editTeam.name" placeholder="Team name" required>
 
-  <input
-    name="edit-max"
-    type="number"
-    [(ngModel)]="editTeam.maximumPlayersAllowed"
-    placeholder="Max antal spelare"
-    required
-  >
+    <input
+      name="edit-max"
+      type="number"
+      [(ngModel)]="editTeam.maximumPlayersAllowed"
+      placeholder="Maximum players"
+      min="1"
+      required
+    >
 
-  <h3>Välj spelare</h3>
-  <div class="checkbox-list">
-    <label *ngFor="let player of players">
-      <input
-        type="checkbox"
-        [checked]="editTeam.playerIds.includes(player.id)"
-        (change)="toggleEditPlayer(player.id)"
-      >
-      {{ player.name }}
-    </label>
-  </div>
+    <h3>Select Players</h3>
+    <div class="checkbox-list">
+      <label *ngFor="let player of players">
+        <input
+          type="checkbox"
+          [checked]="editTeam.playerIds.includes(player.id)"
+          (change)="toggleEditPlayer(player.id)"
+        >
+        {{ player.name }}
+      </label>
+    </div>
 
-  <button type="submit">Spara lag</button>
-  <button type="button" (click)="cancelEdit()">Avbryt</button>
-</form>
+    <div class="form-actions">
+      <button class="primary-button" type="submit" [disabled]="editTeamForm.invalid">Save Team</button>
+      <button class="secondary-button" type="button" (click)="cancelEdit()">Cancel</button>
+    </div>
+  </form>
 
-<div class="grid">
-  <div class="card" *ngFor="let team of teams">
-    <h2>{{ team.name }}</h2>
-    <p>Max antal spelare: {{ team.maximumPlayersAllowed }}</p>
-
-    <h4>Spelare:</h4>
-    <ul>
-      <li *ngFor="let player of team.players">
-        {{ player }}
-      </li>
-    </ul>
-
-    <button (click)="startEdit(team)">
-      Redigera
+  <section class="list-toolbar">
+    <div>
+      <h2>Team Directory</h2>
+      <p>Show every team when you need to review memberships or make changes.</p>
+    </div>
+    <button class="show-button" type="button" (click)="showAllTeams()" [disabled]="loadingTeams">
+      {{ loadingTeams ? 'Loading Teams...' : 'Show All Teams' }}
     </button>
+  </section>
 
-    <button class="danger" (click)="deleteTeam(team.id)">
-      Ta bort
-    </button>
+  <p *ngIf="showTeams && teamsLoadError" class="error-state">
+    {{ teamsLoadError }}
+  </p>
+
+  <p *ngIf="showTeams && loadingTeams" class="status-text">Loading teams...</p>
+
+  <p *ngIf="showTeams && !loadingTeams && !teamsLoadError && teams.length === 0" class="empty-state">
+    No teams have been found.
+  </p>
+
+  <div class="grid" *ngIf="showTeams && !loadingTeams && teams.length > 0">
+    <article class="card" *ngFor="let team of teams">
+      <div class="card-header">
+        <div class="avatar">{{ team.name.charAt(0).toUpperCase() }}</div>
+        <div>
+          <h2>{{ team.name }}</h2>
+          <span>Team #{{ team.id }}</span>
+        </div>
+      </div>
+
+      <div class="metric">
+        <span>Maximum players</span>
+        <strong>{{ team.maximumPlayersAllowed }}</strong>
+      </div>
+
+      <section class="member-list">
+        <h3>Players</h3>
+        <p *ngIf="team.players.length === 0">No players assigned.</p>
+        <div class="chips" *ngIf="team.players.length > 0">
+          <span *ngFor="let player of team.players">{{ player }}</span>
+        </div>
+      </section>
+
+      <div class="card-actions">
+        <button class="edit-button" type="button" (click)="startEdit(team)">Edit</button>
+        <button class="delete-button" type="button" (click)="deleteTeam(team.id)">Delete</button>
+      </div>
+    </article>
   </div>
-</div>
+</section>

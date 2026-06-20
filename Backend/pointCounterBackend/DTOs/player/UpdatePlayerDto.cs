@@ -4,28 +4,28 @@ namespace pointCounterBackend.DTOs.Players;
 
 public class UpdatePlayerDto : IValidatableObject
 {
-    [Required(ErrorMessage = "Namn är obligatoriskt.")]
-    [StringLength(120, MinimumLength = 1, ErrorMessage = "Namnet måste vara 1–120 tecken.")]
+    [Required(ErrorMessage = "Name is required.")]
+    [StringLength(120, MinimumLength = 1, ErrorMessage = "Name must be 1-120 characters.")]
     public string Name { get; set; } = null!;
 
-    [Range(1, 120, ErrorMessage = "Ålder måste vara mellan 1 och 120.")]
+    [Range(1, 120, ErrorMessage = "Age must be between 1 and 120.")]
     public int Age { get; set; }
 
-    [Required(ErrorMessage = "Adress är obligatorisk.")]
-    [StringLength(200, MinimumLength = 1, ErrorMessage = "Adressen måste vara 1–200 tecken.")]
+    [Required(ErrorMessage = "Address is required.")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "Address must be 1-200 characters.")]
     public string Address { get; set; } = null!;
 
-    [Required(ErrorMessage = "Telefon är obligatorisk.")]
-    [StringLength(40, MinimumLength = 1, ErrorMessage = "Telefon måste vara 1–40 tecken.")]
+    [Required(ErrorMessage = "Phone is required.")]
+    [StringLength(40, MinimumLength = 1, ErrorMessage = "Phone must be 1-40 characters.")]
     public string Phone { get; set; } = null!;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (string.IsNullOrWhiteSpace(Name))
-            yield return new ValidationResult("Namnet får inte vara tomt eller bara mellanslag.", [nameof(Name)]);
+            yield return new ValidationResult("Name cannot be empty or only whitespace.", [nameof(Name)]);
         if (string.IsNullOrWhiteSpace(Address))
-            yield return new ValidationResult("Adressen får inte vara tom eller bara mellanslag.", [nameof(Address)]);
+            yield return new ValidationResult("Address cannot be empty or only whitespace.", [nameof(Address)]);
         if (string.IsNullOrWhiteSpace(Phone))
-            yield return new ValidationResult("Telefon får inte vara tom eller bara mellanslag.", [nameof(Phone)]);
+            yield return new ValidationResult("Phone cannot be empty or only whitespace.", [nameof(Phone)]);
     }
 }

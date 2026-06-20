@@ -1,3 +1,4 @@
+using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.EntityFrameworkCore;
 using pointCounterBackend.Data;
@@ -10,7 +11,11 @@ builder.Services.AddControllers();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)));
 
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
@@ -38,6 +43,23 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex) when (IsDatabaseConnectionError(ex) && !context.Response.HasStarted)
+    {
+        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+        await context.Response.WriteAsJsonAsync(new
+        {
+            title = "Database unavailable",
+            detail = "The database could not be reached. Check the database server name, network connection, and firewall settings."
+        });
+    }
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -50,13 +72,18 @@ app.UseCors("AllowAngular");
 
 app.UseAuthorization();
 
-// Serverar Angular-filer från wwwroot
+// Serve Angular files from wwwroot.
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapControllers();
 
-// Viktigt för Angular routes, t.ex. /spel/guid
+// Required for Angular routes, for example /match/guid.
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+static bool IsDatabaseConnectionError(Exception exception)
+{
+    return exception is SqlException || exception.InnerException is SqlException;
+}

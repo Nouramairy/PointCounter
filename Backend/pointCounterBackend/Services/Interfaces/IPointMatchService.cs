@@ -22,6 +22,7 @@ public interface IPointMatchService
         int playerId,
         UpdatePointMatchPlayerNameDto dto);
 
+    Task<PointMatchDto?> DeletePlayerAsync(string publicId, int playerId);  
     Task<PointMatchDto?> RestartAsync(string publicId);
 
     Task<PointMatchDto?> CloneAsync(string publicId);

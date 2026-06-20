@@ -1,20 +1,31 @@
 .navbar {
+  height: 76px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(12px);
+
   display: flex;
-  gap: 12px;
-  padding: 16px;
-  background: #111827;
+  align-items: center;
+  gap: 14px;
+
+  padding: 0 32px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.25);
 }
 
 .navbar a {
   color: white;
   text-decoration: none;
-  padding: 12px 18px;
-  border-radius: 8px;
-  background: #1f2937;
-  border: 1px solid #374151;
-  font-weight: bold;
+  font-weight: 800;
+
+  padding: 13px 20px;
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  transition: 0.2s ease;
 }
 
 .navbar a:hover {
-  background: #2563eb;
+  background: var(--primary);
+  transform: translateY(-1px);
 }

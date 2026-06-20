@@ -1,32 +1,55 @@
-<h1>Poängställning</h1>
-  <p class="muted">
-    Välj vilken match du vill följa eller uppdatera poäng för. Använd +1 och −1 för att justera lokalt, och klicka sedan på
-    <strong>Spara ändringar</strong> för att skicka ändringarna till servern.
+<section class="scoreboard-hub">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Score Management</span>
+      <h1>Scoreboard</h1>
+      <p>
+        Select the match you want to follow or update scores for. Use +1 and −1 to adjust locally, then click
+        <strong>Save Changes</strong> to send the changes to the server.
+      </p>
+    </div>
+  </header>
+
+  <section class="list-toolbar">
+    <div>
+      <h2>Match Selector</h2>
+      <p>Load available matches before choosing which scoreboard to manage.</p>
+    </div>
+    <button class="show-button" type="button" (click)="showAvailableMatches()" [disabled]="loadingGames">
+      {{ loadingGames ? 'Loading Matches...' : 'Show Available Matches' }}
+    </button>
+  </section>
+
+  <p *ngIf="gamesLoadError" class="error">{{ gamesLoadError }}</p>
+
+  <p *ngIf="showGames && loadingGames" class="status-text">Loading matches...</p>
+
+  <p *ngIf="showGames && !loadingGames && !gamesLoadError && games.length === 0" class="empty-state">
+    No matches have been found.
   </p>
 
-<div class="picker" *ngIf="!gamesLoadError">
-  <label for="match-select">Match</label>
-  <select
-    id="match-select"
-    name="match"
-    [(ngModel)]="selectedGameId"
-    (ngModelChange)="onMatchChange($event)"
-  >
-    <option [ngValue]="null">Välj match …</option>
-    <option *ngFor="let g of games" [ngValue]="g.id">
-      {{ g.name }} — {{ g.duration }} min
-    </option>
-  </select>
-</div>
+  <div class="picker" *ngIf="showGames && !loadingGames && !gamesLoadError && games.length > 0">
+    <label for="match-select">Match</label>
+    <select
+      id="match-select"
+      name="match"
+      [(ngModel)]="selectedGameId"
+      (ngModelChange)="onMatchChange($event)"
+    >
+      <option [ngValue]="null">Select match …</option>
+      <option *ngFor="let g of games" [ngValue]="g.id">
+        {{ g.name }} - {{ g.duration }} min
+      </option>
+    </select>
+  </div>
 
-<p *ngIf="gamesLoadError" class="error">{{ gamesLoadError }}</p>
+  <p class="hint">
+    <a routerLink="/create-match/games">Manage Matches and Teams</a>
+  </p>
 
-<p class="hint">
-  <a routerLink="/games">Hantera matcher och lag</a>
-</p>
-
-<app-scoreboard-view
-  *ngIf="selectedGameId != null"
-  [gameId]="selectedGameId!"
-  [embedded]="true"
-/>
+  <app-scoreboard-view
+    *ngIf="selectedGameId != null"
+    [gameId]="selectedGameId!"
+    [embedded]="true"
+  />
+</section>

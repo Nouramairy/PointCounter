@@ -16,7 +16,7 @@ describe('ScoreboardView', () => {
         {
           provide: GameService,
           useValue: {
-            getById: () => of({ id: 1, name: 'Testmatch', duration: 30, teams: ['A'] })
+            getById: () => of({ id: 1, name: 'Test Match', duration: 30, teams: ['A'] })
           }
         },
         {
@@ -27,9 +27,9 @@ describe('ScoreboardView', () => {
                 {
                   id: 0,
                   gameId: 1,
-                  gameName: 'Testmatch',
+                  gameName: 'Test Match',
                   teamId: 10,
-                  teamName: 'Lag A',
+                  teamName: 'Team A',
                   score: 0
                 }
               ]),
@@ -37,9 +37,9 @@ describe('ScoreboardView', () => {
               of({
                 id: 1,
                 gameId: 1,
-                gameName: 'Testmatch',
+                gameName: 'Test Match',
                 teamId: 10,
-                teamName: 'Lag A',
+                teamName: 'Team A',
                 score: 1
               })
           }
