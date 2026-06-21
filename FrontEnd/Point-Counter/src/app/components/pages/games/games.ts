@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { finalize, timeout } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 import { GameService } from '../../../services/Game.service';
 import { TeamService } from '../../../services/Team.service';
@@ -11,6 +12,8 @@ import { getApiErrorMessage } from '../../../utils/http-error.util';
 
 import { CreateGame, Game, UpdateGame } from '../../../models/game.model';
 import { Team } from '../../../models/team.model';
+
+const LOAD_TIMEOUT_MS = 4000;
 
 @Component({
   selector: 'app-games',
@@ -59,19 +62,25 @@ export class Games implements OnInit {
   loadGames(): void {
     this.loadingGames = true;
     this.gamesLoadError = null;
+    let request: Subscription | null = null;
+    const timeoutId = window.setTimeout(() => {
+      this.gamesLoadError = 'Could not load matches. Check that the API is running.';
+      this.notifications.show(this.gamesLoadError, 'error');
+      request?.unsubscribe();
+    }, LOAD_TIMEOUT_MS);
 
-    this.gameService.getAll().pipe(
-      timeout(4000),
-      finalize(() => (this.loadingGames = false))
+    request = this.gameService.getAll().pipe(
+      finalize(() => {
+        window.clearTimeout(timeoutId);
+        this.loadingGames = false;
+      })
     ).subscribe({
       next: games => {
         this.games = games;
       },
       error: err => {
         console.error(err);
-        this.gamesLoadError = err instanceof Error && err.name === 'TimeoutError'
-          ? 'Could not load matches. Check that the API is running.'
-          : getApiErrorMessage(err);
+        this.gamesLoadError = getApiErrorMessage(err);
         this.notifications.show(this.gamesLoadError, 'error');
       }
     });

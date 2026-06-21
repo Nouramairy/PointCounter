@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { finalize, timeout } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 import { TeamService } from '../../../services/Team.service';
 import { PlayerService } from '../../../services/player.service';
@@ -10,6 +11,8 @@ import { getApiErrorMessage } from '../../../utils/http-error.util';
 
 import { CreateTeam, Team, UpdateTeam } from '../../../models/team.model';
 import { Player } from '../../../models/player.model';
+
+const LOAD_TIMEOUT_MS = 4000;
 
 @Component({
   selector: 'app-teams',
@@ -59,19 +62,25 @@ export class Teams implements OnInit {
   loadTeams(): void {
     this.loadingTeams = true;
     this.teamsLoadError = null;
+    let request: Subscription | null = null;
+    const timeoutId = window.setTimeout(() => {
+      this.teamsLoadError = 'Could not load teams. Check that the API is running.';
+      this.notifications.show(this.teamsLoadError, 'error');
+      request?.unsubscribe();
+    }, LOAD_TIMEOUT_MS);
 
-    this.teamService.getAll().pipe(
-      timeout(4000),
-      finalize(() => (this.loadingTeams = false))
+    request = this.teamService.getAll().pipe(
+      finalize(() => {
+        window.clearTimeout(timeoutId);
+        this.loadingTeams = false;
+      })
     ).subscribe({
       next: teams => {
         this.teams = teams;
       },
       error: err => {
         console.error(err);
-        this.teamsLoadError = err instanceof Error && err.name === 'TimeoutError'
-          ? 'Could not load teams. Check that the API is running.'
-          : getApiErrorMessage(err);
+        this.teamsLoadError = getApiErrorMessage(err);
         this.notifications.show(this.teamsLoadError, 'error');
       }
     });

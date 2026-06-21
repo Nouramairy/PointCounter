@@ -1,13 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize, timeout } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 import { GameService } from '../../../services/Game.service';
+import { NotificationService } from '../../../services/notification.service';
 import { getApiErrorMessage } from '../../../utils/http-error.util';
 import { Game } from '../../../models/game.model';
 import { ScoreboardView } from '../scoreboard/scoreboard-view';
+
+const LOAD_TIMEOUT_MS = 4000;
 
 @Component({
   selector: 'app-poangstallning-hub',
@@ -25,8 +29,10 @@ export class PoangstallningHub implements OnInit {
 
   constructor(
     private gameService: GameService,
+    private notifications: NotificationService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -59,22 +65,36 @@ export class PoangstallningHub implements OnInit {
   loadGames(): void {
     this.loadingGames = true;
     this.gamesLoadError = null;
+    let request: Subscription | null = null;
+    const timeoutId = window.setTimeout(() => {
+      this.failLoadGames('Could not load matches. Check that the API is running.');
+      request?.unsubscribe();
+    }, LOAD_TIMEOUT_MS);
 
-    this.gameService.getAll().pipe(
-      timeout(4000),
-      finalize(() => (this.loadingGames = false))
+    request = this.gameService.getAll().pipe(
+      finalize(() => {
+        window.clearTimeout(timeoutId);
+        this.loadingGames = false;
+        this.cdr.detectChanges();
+      })
     ).subscribe({
       next: games => {
         this.games = games;
         this.gamesLoadError = null;
+        this.cdr.detectChanges();
       },
       error: err => {
         console.error(err);
-        this.gamesLoadError = err instanceof Error && err.name === 'TimeoutError'
-          ? 'Could not load matches. Check that the API is running.'
-          : getApiErrorMessage(err);
+        this.failLoadGames(getApiErrorMessage(err));
       },
     });
+  }
+
+  private failLoadGames(message: string): void {
+    this.gamesLoadError = message;
+    this.loadingGames = false;
+    this.notifications.show(message, 'error');
+    this.cdr.detectChanges();
   }
 
   onMatchChange(id: number | null): void {

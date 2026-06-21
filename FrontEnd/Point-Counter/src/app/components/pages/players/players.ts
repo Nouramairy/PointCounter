@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { finalize, timeout } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 import { PlayerService } from '../../../services/player.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -9,6 +10,7 @@ import { getApiErrorMessage } from '../../../utils/http-error.util';
 import { CreatePlayer, Player, UpdatePlayer } from '../../../models/player.model';
 
 type PlayerForm = Omit<CreatePlayer, 'age'> & { age: number | null };
+const LOAD_TIMEOUT_MS = 4000;
 
 @Component({
   selector: 'app-players',
@@ -55,10 +57,19 @@ export class Players {
   loadPlayers(): void {
     this.loadingPlayers = true;
     this.playersLoadError = null;
+    let request: Subscription | null = null;
+    const timeoutId = window.setTimeout(() => {
+      this.playersLoaded = false;
+      this.playersLoadError = 'Could not load players. Check that the API is running.';
+      this.notifications.show(this.playersLoadError, 'error');
+      request?.unsubscribe();
+    }, LOAD_TIMEOUT_MS);
 
-    this.playerService.getAll().pipe(
-      timeout(4000),
-      finalize(() => (this.loadingPlayers = false))
+    request = this.playerService.getAll().pipe(
+      finalize(() => {
+        window.clearTimeout(timeoutId);
+        this.loadingPlayers = false;
+      })
     ).subscribe({
       next: players => {
         this.players = players;
@@ -67,9 +78,7 @@ export class Players {
       error: err => {
         console.error(err);
         this.playersLoaded = false;
-        this.playersLoadError = err instanceof Error && err.name === 'TimeoutError'
-          ? 'Could not load players. Check that the API is running.'
-          : getApiErrorMessage(err);
+        this.playersLoadError = getApiErrorMessage(err);
         this.notifications.show(this.playersLoadError, 'error');
       }
     });
