@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using pointCounterBackend.DTOs.PointMatches;
+using pointCounterBackend.Hubs;
 using pointCounterBackend.Services.Interfaces;
 
 namespace pointCounterBackend.Controllers;
@@ -9,11 +11,19 @@ namespace pointCounterBackend.Controllers;
 public class PointMatchesController : ControllerBase
 {
     private readonly IPointMatchService _pointMatchService;
+    private readonly IHubContext<PointMatchHub> _hubContext;
 
-    public PointMatchesController(IPointMatchService pointMatchService)
+    public PointMatchesController(
+        IPointMatchService pointMatchService,
+        IHubContext<PointMatchHub> hubContext)
     {
         _pointMatchService = pointMatchService;
+        _hubContext = hubContext;
     }
+
+    private Task BroadcastMatchUpdated(PointMatchDto match) =>
+        _hubContext.Clients.Group(PointMatchHub.GroupName(match.PublicId))
+            .SendAsync("MatchUpdated", match);
 
     [HttpPost]
     public async Task<ActionResult<PointMatchDto>> Create(CreatePointMatchDto dto)
@@ -48,6 +58,8 @@ public class PointMatchesController : ControllerBase
         if (match == null)
             return NotFound();
 
+        await BroadcastMatchUpdated(match);
+
         return Ok(match);
     }
 
@@ -60,6 +72,8 @@ public class PointMatchesController : ControllerBase
 
         if (match == null)
             return BadRequest("Matchen finns inte eller spelarna är låsta.");
+
+        await BroadcastMatchUpdated(match);
 
         return Ok(match);
     }
@@ -75,6 +89,21 @@ public class PointMatchesController : ControllerBase
         if (match == null)
             return BadRequest("Matchen finns inte, spelaren finns inte eller spelarna är låsta.");
 
+        await BroadcastMatchUpdated(match);
+
+        return Ok(match);
+    }
+
+    [HttpDelete("{publicId}/players/{playerId}")]
+    public async Task<ActionResult<PointMatchDto>> DeletePlayer(string publicId, int playerId)
+    {
+        var match = await _pointMatchService.DeletePlayerAsync(publicId, playerId);
+
+        if (match == null)
+            return NotFound();
+
+        await BroadcastMatchUpdated(match);
+
         return Ok(match);
     }
 
@@ -85,6 +114,8 @@ public class PointMatchesController : ControllerBase
 
         if (match == null)
             return NotFound();
+
+        await BroadcastMatchUpdated(match);
 
         return Ok(match);
     }

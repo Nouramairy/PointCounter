@@ -1,8 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { PointMatchService } from '../../../services/point-match.service';
+import { PointMatchHubService } from '../../../services/point-match-hub.service';
 import { PointMatch, PointMatchPlayer } from '../../../models/point-match.model';
 
 @Component({
@@ -12,19 +14,37 @@ import { PointMatch, PointMatchPlayer } from '../../../models/point-match.model'
   templateUrl: './match-page.html',
   styleUrl: './match-page.css'
 })
-export class MatchPage implements OnInit {
+export class MatchPage implements OnInit, OnDestroy {
   publicId = '';
   match: PointMatch | null = null;
   newPlayerName = '';
+
+  private subscriptions = new Subscription();
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private pointMatchService: PointMatchService,
+    private pointMatchHub: PointMatchHubService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    this.subscriptions.add(
+      this.pointMatchHub.matchUpdates.subscribe(match => {
+        if (match.publicId === this.publicId) {
+          this.match = match;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+
+    this.subscriptions.add(
+      this.pointMatchHub.reconnected.subscribe(() => {
+        this.loadMatch();
+      })
+    );
+
     this.route.paramMap.subscribe(params => {
       this.publicId = params.get('publicId') ?? '';
 
@@ -34,7 +54,15 @@ export class MatchPage implements OnInit {
       }
 
       this.loadMatch();
+      this.pointMatchHub.joinMatch(this.publicId);
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.publicId) {
+      this.pointMatchHub.leaveMatch(this.publicId);
+    }
+    this.subscriptions.unsubscribe();
   }
 
   loadMatch(): void {

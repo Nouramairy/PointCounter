@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.EntityFrameworkCore;
 using pointCounterBackend.Data;
+using pointCounterBackend.Hubs;
 using pointCounterBackend.Services;
 using pointCounterBackend.Services.Interfaces;
 
@@ -23,6 +24,8 @@ builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IScoreboardService, ScoreboardService>();
 builder.Services.AddScoped<IPointMatchService, PointMatchService>();
 
+builder.Services.AddSignalR();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
@@ -33,7 +36,8 @@ builder.Services.AddCors(options =>
                   "http://127.0.0.1:4200",
                   "https://127.0.0.1:4200")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -77,6 +81,8 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapControllers();
+
+app.MapHub<PointMatchHub>("/hubs/point-matches");
 
 // Required for Angular routes, for example /match/guid.
 app.MapFallbackToFile("index.html");
