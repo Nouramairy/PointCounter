@@ -4,7 +4,15 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <SpaRoot>$(MSBuildProjectDirectory)\..\..\FrontEnd\Point-Counter\</SpaRoot>
   </PropertyGroup>
+
+  <Target Name="BuildAngular" BeforeTargets="Build">
+    <Message Importance="high" Text="Installing Angular dependencies (first run only)..." />
+    <Exec Command="npm install" WorkingDirectory="$(SpaRoot)" Condition="!Exists('$(SpaRoot)node_modules')" />
+    <Message Importance="high" Text="Building Angular application..." />
+    <Exec Command="npm run build" WorkingDirectory="$(SpaRoot)" />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
